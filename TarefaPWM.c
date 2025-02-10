@@ -2,69 +2,69 @@
 #include "pico/stdlib.h"   // Biblioteca do SDK do Raspberry Pi Pico
 #include "hardware/pwm.h"  // Biblioteca para controle de PWM
 
-#define SERVO_PIN 22 // Pino onde o servo motor está conectado (GPIO 22)
-#define LED_PIN 12   // Pino do LED RGB (GPIO 12)
+#define PINO_SERVO 22 // Pino onde o servo motor está conectado (GPIO 22)
+#define PINO_LED   12 // Pino do LED RGB (GPIO 12)
 
 // Definições do PWM para 50Hz (período de 20ms)
-const uint16_t WRAP_PERIOD = 20000;  // Contador máximo do PWM para 20ms
-const float PWM_DIVISER = 125.0;      // Divisor de clock para gerar PWM de 50Hz
+const uint16_t PERIODO_PWM = 20000;  // Contador máximo do PWM para 20ms
+const float DIVISOR_PWM = 125.0;      // Divisor de clock para gerar PWM de 50Hz
 
-// Posições do servo motor
-const uint16_t SERVO_180_DEGREES = 2400; // Pulso de 2.400µs → 180°
-const uint16_t SERVO_90_DEGREES  = 1470; // Pulso de 1.470µs → 90°
-const uint16_t SERVO_0_DEGREES   = 500;  // Pulso de 500µs → 0°
+// Posições do servo motor (em microssegundos)
+const uint16_t PULSO_180_GRAUS = 2400; // Pulso de 2.400µs → 180°
+const uint16_t PULSO_90_GRAUS  = 1470; // Pulso de 1.470µs → 90°
+const uint16_t PULSO_0_GRAUS   = 500;  // Pulso de 500µs → 0°
 
-// Suavidade do movimento
-const uint16_t STEP_SIZE = 5;  // Incremento/decremento do PWM (5µs por passo)
-const uint16_t STEP_DELAY = 10; // Tempo entre passos (10ms)
+// Configurações da movimentação suave
+const uint16_t INCREMENTO_PASSO = 5;   // Incremento/decremento do PWM (5µs por passo)
+const uint16_t ATRASO_PASSO = 10;      // Tempo entre passos (10ms)
 
-uint16_t servo_level = SERVO_0_DEGREES; // Começa em 0°
-bool moving_up = true; // Direção inicial (0° → 180°)
+uint16_t posicao_servo = PULSO_0_GRAUS; // Começa em 0°
+bool aumentando = true; // Direção inicial (0° → 180°)
 
 // Configura PWM no Servo e no LED
-void pwm_setup() {
+void configurar_pwm() {
     // Configuração do Servo (GPIO 22)
-    gpio_set_function(SERVO_PIN, GPIO_FUNC_PWM);
-    uint slice_servo = pwm_gpio_to_slice_num(SERVO_PIN);
-    pwm_set_clkdiv(slice_servo, PWM_DIVISER);
-    pwm_set_wrap(slice_servo, WRAP_PERIOD);
-    pwm_set_gpio_level(SERVO_PIN, servo_level);
+    gpio_set_function(PINO_SERVO, GPIO_FUNC_PWM);
+    uint slice_servo = pwm_gpio_to_slice_num(PINO_SERVO);
+    pwm_set_clkdiv(slice_servo, DIVISOR_PWM);
+    pwm_set_wrap(slice_servo, PERIODO_PWM);
+    pwm_set_gpio_level(PINO_SERVO, posicao_servo);
     pwm_set_enabled(slice_servo, true);
 
     // Configuração do LED (GPIO 12)
-    gpio_set_function(LED_PIN, GPIO_FUNC_PWM);
-    uint slice_led = pwm_gpio_to_slice_num(LED_PIN);
-    pwm_set_clkdiv(slice_led, PWM_DIVISER);
-    pwm_set_wrap(slice_led, WRAP_PERIOD);
-    pwm_set_gpio_level(LED_PIN, 0);  // Começa apagado
+    gpio_set_function(PINO_LED, GPIO_FUNC_PWM);
+    uint slice_led = pwm_gpio_to_slice_num(PINO_LED);
+    pwm_set_clkdiv(slice_led, DIVISOR_PWM);
+    pwm_set_wrap(slice_led, PERIODO_PWM);
+    pwm_set_gpio_level(PINO_LED, 0);  // Começa apagado
     pwm_set_enabled(slice_led, true);
 }
 
 // Ajusta a posição do servo e a intensidade do LED
-void set_servo_and_led(uint16_t pulse_width) {
-    pwm_set_gpio_level(SERVO_PIN, pulse_width);
+void ajustar_servo_e_led(uint16_t largura_pulso) {
+    pwm_set_gpio_level(PINO_SERVO, largura_pulso);
 
-    // Ajusta o LED proporcionalmente à posição do servo
-    uint16_t led_brightness = (pulse_width - SERVO_0_DEGREES) * 10;
-    pwm_set_gpio_level(LED_PIN, led_brightness);
+    // Ajusta o brilho do LED proporcionalmente à posição do servo
+    uint16_t brilho_led = (largura_pulso - PULSO_0_GRAUS) * 10;
+    pwm_set_gpio_level(PINO_LED, brilho_led);
 }
 
 // Movimentação contínua e suave entre 0° e 180°
-void move_servo_smoothly() {
+void movimentar_servo_suavemente() {
     while (true) {
-        set_servo_and_led(servo_level);
-        sleep_ms(STEP_DELAY); // Pequeno atraso para suavizar a movimentação
+        ajustar_servo_e_led(posicao_servo);
+        sleep_ms(ATRASO_PASSO); // Pequeno atraso para suavizar a movimentação
 
         // Atualiza a posição do servo motor continuamente
-        if (moving_up) {
-            servo_level += STEP_SIZE;
-            if (servo_level >= SERVO_180_DEGREES) {
-                moving_up = false; // Alcançou 180°, começa a descer
+        if (aumentando) {
+            posicao_servo += INCREMENTO_PASSO;
+            if (posicao_servo >= PULSO_180_GRAUS) {
+                aumentando = false; // Alcançou 180°, começa a descer
             }
         } else {
-            servo_level -= STEP_SIZE;
-            if (servo_level <= SERVO_0_DEGREES) {
-                moving_up = true; // Alcançou 0°, começa a subir
+            posicao_servo -= INCREMENTO_PASSO;
+            if (posicao_servo <= PULSO_0_GRAUS) {
+                aumentando = true; // Alcançou 0°, começa a subir
             }
         }
     }
@@ -74,20 +74,20 @@ void move_servo_smoothly() {
 int main() {
     stdio_init_all(); // Inicializa comunicação serial (opcional)
     
-    pwm_setup(); // Configura PWM no servo e no LED
+    configurar_pwm(); // Configura PWM no servo e no LED
 
     // Posições fixas iniciais
-    set_servo_and_led(SERVO_180_DEGREES);
+    ajustar_servo_e_led(PULSO_180_GRAUS);
     sleep_ms(5000); // Espera 5s em 180°
 
-    set_servo_and_led(SERVO_90_DEGREES);
+    ajustar_servo_e_led(PULSO_90_GRAUS);
     sleep_ms(5000); // Espera 5s em 90°
 
-    set_servo_and_led(SERVO_0_DEGREES);
+    ajustar_servo_e_led(PULSO_0_GRAUS);
     sleep_ms(5000); // Espera 5s em 0°
 
     // Inicia movimentação contínua e suave entre 0° e 180°
-    move_servo_smoothly();
+    movimentar_servo_suavemente();
 
     return 0;
 }
