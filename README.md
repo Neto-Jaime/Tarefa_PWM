@@ -4,6 +4,7 @@
 # Matricula: TIC370100555
 # Grupo: 0
 # Link do repósitorio: https://github.com/Neto-Jaime/Tarefa_PWM
+# Link do Vídeo: https://drive.google.com/drive/folders/1q9CKDypDYjBBsuUc1vi3DfZALykzM8Iw?usp=sharing
 
 Este projeto controla um **servo motor** e um **LED RGB** simultaneamente usando **PWM** no Raspberry Pi Pico W.  
 O **servo motor oscila suavemente entre 0° e 180°**, enquanto o **LED RGB ajusta seu brilho proporcionalmente** à posição do servo.  

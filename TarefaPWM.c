@@ -15,11 +15,11 @@ const uint16_t PULSO_90_GRAUS  = 1470; // Pulso de 1.470µs → 90°
 const uint16_t PULSO_0_GRAUS   = 500;  // Pulso de 500µs → 0°
 
 // Configurações da movimentação suave
-const uint16_t INCREMENTO_PASSO = 5;   // Incremento/decremento do PWM (5µs por passo)
-const uint16_t ATRASO_PASSO = 10;      // Tempo entre passos (10ms)
+const uint16_t INCREMENTO_PASSO = 5;   // Incremento/decremento do PWM 5µs por passo
+const uint16_t ATRASO_PASSO = 10;      // Tempo entre passos 10ms
 
 uint16_t posicao_servo = PULSO_0_GRAUS; // Começa em 0°
-bool aumentando = true; // Direção inicial (0° → 180°)
+bool aumentando = true; // Direção inicial 0° → 180°
 
 // Configura PWM no Servo e no LED
 void configurar_pwm() {
